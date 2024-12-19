@@ -97,6 +97,7 @@ example : (a + b) * (a + b) = a * a + 2 * (a * b) + b * b :=
       rw [mul_comm b a, ← two_mul]
 
 example : (a + b) * (a + b) = a * a + 2 * (a * b) + b * b :=
+-- Here they wanted to keep the sorry statements to emphais
   calc
     (a + b) * (a + b) = a * a + b * a + (a * b + b * b) := by
       sorry
@@ -112,7 +113,9 @@ section
 variable (a b c d : ℝ)
 
 example : (a + b) * (c + d) = a * c + a * d + b * c + b * d := by
-  sorry
+  rw [mul_add, add_mul, add_mul]
+  rw [← add_assoc, add_assoc (a * c)]
+  rw [add_comm (b*c), ← add_assoc]
 
 example (a b : ℝ) : (a + b) * (a - b) = a ^ 2 - b ^ 2 := by
   sorry
