@@ -141,21 +141,19 @@ variable {G : Type*} [Group G]
 namespace MyGroup
 
 theorem mul_inv_cancel (a : G) : a * a⁻¹ = 1 := by
-  -- Proof planning phase:
-
-  -- a * a⁻¹ = 1
-  -- (1 * a) * (1 * a)⁻¹ = 1
-  -- (a⁻¹ * a * a) * (a⁻¹ * a * a)⁻¹ = a⁻¹ * a
-    -- after lifting parenthesis with the assoc
 
   have h : (a * a⁻¹)⁻¹ * (a * a⁻¹ * (a * a⁻¹)) = 1 := by
-
+    rw [mul_assoc, ← mul_assoc a⁻¹ a, inv_mul_cancel, one_mul, inv_mul_cancel]
+  rw [← h, ← mul_assoc, inv_mul_cancel, one_mul]
 
 theorem mul_one (a : G) : a * 1 = a := by
-  sorry
+  rw [← inv_mul_cancel a, ← mul_assoc, mul_inv_cancel, one_mul]
 
 theorem mul_inv_rev (a b : G) : (a * b)⁻¹ = b⁻¹ * a⁻¹ := by
-  sorry
+  -- need to eventually get (a * b)⁻¹ (a * b)()
+  rw [← one_mul b⁻¹, ← inv_mul_cancel (a * b), ← mul_assoc (a*b)⁻¹]
+  rw [mul_assoc, mul_assoc, ← mul_assoc b b⁻¹, ← one_mul a⁻¹, mul_inv_cancel]
+  rw [one_mul, one_mul, mul_assoc, mul_inv_cancel, mul_one]
 
 end MyGroup
 
