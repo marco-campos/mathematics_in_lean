@@ -4,7 +4,7 @@ This is my back-up for the exercises from the MIL textbook.
 
 ## Chapters
 
-- [ ] Basics
+- [x] Basics
 - [ ] Logic
 - [ ] Sets and Functions
 - [ ] Elementary Number Theory
