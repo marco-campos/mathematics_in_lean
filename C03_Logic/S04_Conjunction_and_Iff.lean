@@ -1,6 +1,7 @@
 import MIL.Common
 import Mathlib.Data.Real.Basic
 import Mathlib.Data.Nat.Prime.Basic
+import Paperproof
 
 namespace C03S04
 
