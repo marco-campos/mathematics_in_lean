@@ -2,6 +2,7 @@ import MIL.Common
 import Mathlib.Data.Set.Lattice
 import Mathlib.Data.Set.Function
 import Mathlib.Analysis.SpecialFunctions.Log.Basic
+import Paperproof
 
 section
 
@@ -32,68 +33,188 @@ example : s ⊆ f ⁻¹' (f '' s) := by
   intro x xs
   show f x ∈ f '' s
   use x, xs
+  -- we can use:
+  -- apply mem_image_of_mem f xs
 
 example : f '' s ⊆ v ↔ s ⊆ f ⁻¹' v := by
-  sorry
+  constructor
+  · intro h x xs
+    have h1 : f x ∈ f '' s
+    · apply mem_image_of_mem f xs
+    apply h
+    apply h1
+  intro h y ymem
+  rcases ymem with ⟨x, xs, fxeq⟩
+  rw [← fxeq]
+  apply h
+  apply xs
 
 example (h : Injective f) : f ⁻¹' (f '' s) ⊆ s := by
-  sorry
+  rintro x ⟨y, ys, yfeq⟩
+  apply h at yfeq
+  rw [← yfeq]
+  apply ys
 
 example : f '' (f ⁻¹' u) ⊆ u := by
-  sorry
+  rintro x ⟨y, ys, yfeq⟩
+  rw [← yfeq]
+  apply ys
 
 example (h : Surjective f) : u ⊆ f '' (f ⁻¹' u) := by
-  sorry
+  intro y yu
+  rcases h y with ⟨x, xu⟩
+  use x
+  constructor
+  · show f x ∈ u
+    rw [xu]
+    apply yu
+  apply xu
 
 example (h : s ⊆ t) : f '' s ⊆ f '' t := by
-  sorry
+  rintro y ⟨x, xu, fxeq⟩
+  use x
+  constructor
+  apply h xu
+  apply fxeq
 
 example (h : u ⊆ v) : f ⁻¹' u ⊆ f ⁻¹' v := by
-  sorry
+  rintro x
+  apply h
 
 example : f ⁻¹' (u ∪ v) = f ⁻¹' u ∪ f ⁻¹' v := by
-  sorry
+  ext x
+  rfl
 
 example : f '' (s ∩ t) ⊆ f '' s ∩ f '' t := by
-  sorry
+  intro y ⟨x, ⟨xs, xt⟩, fxeq⟩
+  constructor
+  use x
+  use x
 
 example (h : Injective f) : f '' s ∩ f '' t ⊆ f '' (s ∩ t) := by
-  sorry
+  intro y ⟨⟨x1, x1s, fx1s⟩, ⟨x2, x2t, fx2t⟩⟩
+  use x1
+  constructor
+  · constructor
+    apply x1s
+    have h1 : x1 = x2
+    apply h
+    rw [fx1s, fx2t]
+    rw [h1]
+    apply x2t
+  apply fx1s
 
 example : f '' s \ f '' t ⊆ f '' (s \ t) := by
-  sorry
+  intro y ⟨⟨x1, x1s, fx1eq⟩, h⟩
+  use x1
+  constructor
+  · constructor
+    apply x1s
+    by_contra
+    apply h
+    use x1
+  apply fx1eq
+
 
 example : f ⁻¹' u \ f ⁻¹' v ⊆ f ⁻¹' (u \ v) := by
-  sorry
+  rintro x ⟨h1, h2⟩
+  show f x ∈ u \ v
+  constructor
+  apply h1
+  apply h2
+
 
 example : f '' s ∩ v = f '' (s ∩ f ⁻¹' v) := by
-  sorry
+
+-- lol I should have used y but I am already in the second constructor statement
+-- so oh well....
+  ext y
+  constructor
+  · intro ⟨yfs, yv⟩
+    rcases yfs with ⟨x, xs, fxy⟩
+    use x
+    · constructor
+      · constructor
+        apply xs
+        rw [← fxy] at yv
+        apply yv
+      apply fxy
+  intro ⟨x, ⟨⟨xs, xfv⟩ , fxy⟩⟩
+  constructor
+  use x
+  rw [← fxy]
+  apply xfv
+
 
 example : f '' (s ∩ f ⁻¹' u) ⊆ f '' s ∩ u := by
-  sorry
+  intro y ⟨x, ⟨⟨xs, xfu⟩, fxy⟩⟩
+  constructor
+  use x
+  rw [← fxy]
+  apply xfu
 
 example : s ∩ f ⁻¹' u ⊆ f ⁻¹' (f '' s ∩ u) := by
-  sorry
+  intro x ⟨xs, xfu⟩
+  constructor
+  · use x
+  apply xfu
+
 
 example : s ∪ f ⁻¹' u ⊆ f ⁻¹' (f '' s ∪ u) := by
-  sorry
+  rintro x (xs | fxu)
+  · left
+    use x
+  · right
+    apply fxu
+
 
 variable {I : Type*} (A : I → Set α) (B : I → Set β)
 
 example : (f '' ⋃ i, A i) = ⋃ i, f '' A i := by
-  sorry
+  ext y
+  simp
+  constructor
+  · rintro ⟨x, ⟨⟨i, xAi⟩ , fhy⟩⟩
+    use i, x
+  rintro ⟨i, x, xAi, fxy⟩
+  use x
+  constructor
+  use i
+  apply fxy
 
 example : (f '' ⋂ i, A i) ⊆ ⋂ i, f '' A i := by
-  sorry
+  intro y
+  simp
+  intro x h fxy i
+  use x
+  constructor
+  · apply h
+  apply fxy
 
 example (i : I) (injf : Injective f) : (⋂ i, f '' A i) ⊆ f '' ⋂ i, A i := by
-  sorry
+  intro y
+  simp
+  intro h
+  rcases h i with ⟨x, xAi, fxy⟩
+  use x
+  constructor
+  · intro i'
+    rcases h i' with ⟨x', x'Ai', fx'y⟩
+    have h1 : f x = f x' := by
+      rw [fxy, fx'y]
+    have h2 : x = x' := by
+      apply injf h1
+    rw [h2]
+    apply x'Ai'
+  apply fxy
 
 example : (f ⁻¹' ⋃ i, B i) = ⋃ i, f ⁻¹' B i := by
-  sorry
+  ext x
+  simp
 
 example : (f ⁻¹' ⋂ i, B i) = ⋂ i, f ⁻¹' B i := by
-  sorry
+  ext x
+  simp
 
 example : InjOn f s ↔ ∀ x₁ ∈ s, ∀ x₂ ∈ s, f x₁ = f x₂ → x₁ = x₂ :=
   Iff.refl _
@@ -123,16 +244,45 @@ example : range exp = { y | y > 0 } := by
   rw [exp_log ypos]
 
 example : InjOn sqrt { x | x ≥ 0 } := by
-  sorry
+  intro x xpos y ypos
+  intro e
+  calc
+    x = sqrt x ^ 2 := by rw [sq_sqrt xpos]
+    _ = sqrt y ^ 2 := by rw [e]
+    _ = y := by rw [sq_sqrt ypos]
 
 example : InjOn (fun x ↦ x ^ 2) { x : ℝ | x ≥ 0 } := by
-  sorry
+  intro x xpos y ypos
+  intro e
+  dsimp at *
+  calc
+    x = sqrt (x ^ 2 ) := by rw [sqrt_sq xpos]
+    _ = sqrt (y ^ 2) := by rw [e]
+    _ = y := by rw [sqrt_sq ypos]
+
 
 example : sqrt '' { x | x ≥ 0 } = { y | y ≥ 0 } := by
-  sorry
+  ext y
+  constructor
+  · rintro ⟨x, ⟨xpos, rfl⟩⟩
+    apply sqrt_nonneg
+  intro ypos
+  use y ^ 2
+  constructor
+  apply pow_nonneg ypos
+  apply sqrt_sq
+  apply ypos
 
 example : (range fun x ↦ x ^ 2) = { y : ℝ | y ≥ 0 } := by
-  sorry
+  ext y
+  constructor
+  · rintro ⟨x, rfl⟩
+    dsimp at *
+    apply pow_two_nonneg
+  rintro ypos
+  use sqrt y
+  dsimp at *
+  apply sq_sqrt ypos
 
 end
 
@@ -163,11 +313,25 @@ variable (f : α → β)
 
 open Function
 
-example : Injective f ↔ LeftInverse (inverse f) f :=
-  sorry
+example : Injective f ↔ LeftInverse (inverse f) f := by
+  constructor
+  · intro h y
+    apply h
+    apply inverse_spec
+    use y
+  intro h x1 x2 e
+  rw [← h x1]
+  rw [e]
+  rw [h]
 
-example : Surjective f ↔ RightInverse (inverse f) f :=
-  sorry
+example : Surjective f ↔ RightInverse (inverse f) f := by
+  constructor
+  · intro h y
+    apply inverse_spec
+    apply h
+  intro h y
+  use inverse f y
+  apply h
 
 end
 
@@ -183,10 +347,8 @@ theorem Cantor : ∀ f : α → Set α, ¬Surjective f := by
     intro h'
     have : j ∉ f j := by rwa [h] at h'
     contradiction
-  have h₂ : j ∈ S
-  sorry
-  have h₃ : j ∉ S
-  sorry
+  have h₂ : j ∈ S := h₁
+  have h₃ : j ∉ S := by rwa [h] at h₁
   contradiction
 
 -- COMMENTS: TODO: improve this
