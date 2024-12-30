@@ -1,16 +1,24 @@
 import Mathlib.Data.Set.Lattice
 import Mathlib.Data.Set.Function
 import MIL.Common
+import Paperproof
 
 open Set
 open Function
 
 noncomputable section
 open Classical
+
+-- Remember that when using the inverse of a certain function, you need to make
+-- sure that the type has [Nonempty (type)]
+
 variable {α β : Type*} [Nonempty β]
 
 section
 variable (f : α → β) (g : β → α)
+
+-- This is a recursive definition. Here they are defining sbAux using the 0th element
+-- and then the n+1 element afterwards.
 
 def sbAux : ℕ → Set α
   | 0 => univ \ g '' univ
@@ -28,10 +36,16 @@ theorem sb_right_inv {x : α} (hx : x ∉ sbSet f g) : g (invFun g x) = x := by
     rw [sbSet, mem_iUnion]
     use 0
     rw [sbAux, mem_diff]
-    sorry
+    constructor
+    apply mem_univ _
+    apply hx
+
   have : ∃ y, g y = x := by
-    sorry
-  sorry
+    simp at this
+    apply this
+
+  apply invFun_eq
+  apply this
 
 theorem sb_injective (hf : Injective f) : Injective (sbFun f g) := by
   set A := sbSet f g with A_def
