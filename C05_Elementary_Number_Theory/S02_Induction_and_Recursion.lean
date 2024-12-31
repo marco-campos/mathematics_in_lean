@@ -1,5 +1,6 @@
 import Mathlib.Data.Nat.GCD.Basic
 import MIL.Common
+import Paperproof
 
 example (n : Nat) : n.succ ≠ Nat.zero :=
   Nat.succ_ne_zero n
@@ -29,6 +30,8 @@ example (n : ℕ) : fac (n + 1) = (n + 1) * fac n := by
 example (n : ℕ) : fac (n + 1) = (n + 1) * fac n := by
   simp [fac]
 
+-- Remember that fac here is the factorial operation.
+
 theorem fac_pos (n : ℕ) : 0 < fac n := by
   induction' n with n ih
   · rw [fac]
@@ -40,6 +43,7 @@ theorem dvd_fac {i n : ℕ} (ipos : 0 < i) (ile : i ≤ n) : i ∣ fac n := by
   induction' n with n ih
   · exact absurd ipos (not_lt_of_ge ile)
   rw [fac]
+  -- if m ≤ n.succ, then either m ≤ n or m = n.succ
   rcases Nat.of_le_succ ile with h | h
   · apply dvd_mul_of_dvd_right (ih h)
   rw [h]
@@ -48,7 +52,13 @@ theorem dvd_fac {i n : ℕ} (ipos : 0 < i) (ile : i ≤ n) : i ∣ fac n := by
 theorem pow_two_le_fac (n : ℕ) : 2 ^ (n - 1) ≤ fac n := by
   rcases n with _ | n
   · simp [fac]
-  sorry
+  induction' n with n ih
+  · simp [fac]
+  simp at *
+  rw [pow_succ', fac]
+  apply Nat.mul_le_mul _ ih
+  simp
+
 section
 
 variable {α : Type*} (s : Finset ℕ) (f : ℕ → ℕ) (n : ℕ)
@@ -59,6 +69,7 @@ variable {α : Type*} (s : Finset ℕ) (f : ℕ → ℕ) (n : ℕ)
 open BigOperators
 open Finset
 
+-- should read this as the sum of f(x) over x in s.
 example : s.sum f = ∑ x in s, f x :=
   rfl
 
@@ -99,7 +110,11 @@ theorem sum_id (n : ℕ) : ∑ i in range (n + 1), i = n * (n + 1) / 2 := by
   ring
 
 theorem sum_sqr (n : ℕ) : ∑ i in range (n + 1), i ^ 2 = n * (n + 1) * (2 * n + 1) / 6 := by
-  sorry
+  symm; apply Nat.div_eq_of_eq_mul_right (by norm_num : 0 < 6)
+  induction' n with n ih
+  · simp
+  rw [Finset.sum_range_succ, mul_add 6, ← ih]
+  ring
 end
 
 inductive MyNat where
@@ -134,13 +149,34 @@ theorem add_comm (m n : MyNat) : add m n = add n m := by
   rw [add, succ_add, ih]
 
 theorem add_assoc (m n k : MyNat) : add (add m n) k = add m (add n k) := by
-  sorry
+  induction' n with n ih
+  · rw [add, zero_add]
+  rw [succ_add, add, succ_add, ih]
+  rfl
+
 theorem mul_add (m n k : MyNat) : mul m (add n k) = add (mul m n) (mul m k) := by
-  sorry
+  induction' k with k ih
+  · rfl
+  rw [add, mul, ih, add_assoc, mul]
+
 theorem zero_mul (n : MyNat) : mul zero n = zero := by
-  sorry
+  induction' n with n ih
+  · rfl
+  apply ih
+
 theorem succ_mul (m n : MyNat) : mul (succ m) n = add (mul m n) n := by
-  sorry
+  induction' n with n ih
+  · rfl
+  rw [mul, mul, ih, add_assoc, add_assoc, add_comm n, succ_add]
+  rfl
+
 theorem mul_comm (m n : MyNat) : mul m n = mul n m := by
-  sorry
+  induction' n with n ih
+  · rw [zero_mul]
+    rfl
+  -- currently have m * (n+1) = (n+1) * m
+  -- m * (n+1) = (n * m) + m
+  -- m * n + m = n * m + m
+  -- hypothesis for commutativity.
+  rw [succ_mul, mul, ih]
 end MyNat
