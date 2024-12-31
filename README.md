@@ -6,7 +6,7 @@ This is my back-up for the exercises from the MIL textbook.
 
 - [x] Basics
 - [x] Logic
-- [ ] Sets and Functions
+- [x] Sets and Functions
 - [ ] Elementary Number Theory
 - [ ] Structures
 - [ ] Hierarchies
