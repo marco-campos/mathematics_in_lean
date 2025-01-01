@@ -1,7 +1,6 @@
 import Mathlib.Data.Nat.Prime.Basic
 import MIL.Common
-
-open BigOperators
+import Paperproof
 
 namespace C05S03
 
@@ -44,19 +43,32 @@ theorem exists_prime_factor {n : Nat} (h : 2 ≤ n) : ∃ p : Nat, p.Prime ∧ p
 
 theorem primes_infinite : ∀ n, ∃ p > n, Nat.Prime p := by
   intro n
-  have : 2 ≤ Nat.factorial (n + 1) + 1 := by
-    sorry
-  rcases exists_prime_factor this with ⟨p, pp, pdvd⟩
+  have h1 : 2 ≤ Nat.factorial (n + 1) + 1 := by
+    apply Nat.succ_le_succ
+    apply Nat.factorial_pos
+
+  -- there exists prime factor p of (n+1)! + 1
+  rcases exists_prime_factor h1 with ⟨p, pp, pdvd⟩
   refine ⟨p, ?_, pp⟩
   show p > n
   by_contra ple
   push_neg  at ple
-  have : p ∣ Nat.factorial (n + 1) := by
-    sorry
-  have : p ∣ 1 := by
-    sorry
+  have h2 : p ∣ Nat.factorial (n + 1) := by
+    apply Nat.dvd_factorial
+    · apply Nat.Prime.pos pp
+    · linarith
+
+  have h3 : p ∣ 1 := by
+    convert Nat.dvd_sub' pdvd h2
+    simp
+
   show False
-  sorry
+  have h4 : p ≤ 1 := by
+    apply Nat.le_of_dvd
+    apply zero_lt_one
+    apply h3
+  linarith [pp.two_le]
+
 open Finset
 
 section
@@ -89,9 +101,17 @@ section
 variable {α : Type*} [DecidableEq α] (r s t : Finset α)
 
 example : (r ∪ s) ∩ (r ∪ t) = r ∪ s ∩ t := by
-  sorry
+  ext x
+  -- constructor
+  · rw [mem_inter, mem_union, mem_union, mem_union, mem_inter]
+    tauto
+  -- · rw [mem_inter, mem_union, mem_inter, mem_union, mem_union]
+  --   tauto
+
 example : (r \ s) \ t = r \ (s ∪ t) := by
-  sorry
+  ext x
+  rw [mem_sdiff, mem_sdiff, mem_sdiff, mem_union]
+  tauto
 
 end
 
@@ -101,7 +121,10 @@ example (s : Finset ℕ) (n : ℕ) (h : n ∈ s) : n ∣ ∏ i in s, i :=
 theorem _root_.Nat.Prime.eq_of_dvd_of_prime {p q : ℕ}
       (prime_p : Nat.Prime p) (prime_q : Nat.Prime q) (h : p ∣ q) :
     p = q := by
-  sorry
+  cases prime_q.eq_one_or_self_of_dvd _ h
+  · linarith [prime_p.two_le]
+  assumption
+
 
 theorem mem_of_dvd_prod_primes {s : Finset ℕ} {p : ℕ} (prime_p : p.Prime) :
     (∀ n ∈ s, Nat.Prime n) → (p ∣ ∏ n in s, n) → p ∈ s := by
@@ -111,7 +134,19 @@ theorem mem_of_dvd_prod_primes {s : Finset ℕ} {p : ℕ} (prime_p : p.Prime) :
     linarith [prime_p.two_le]
   simp [Finset.prod_insert ans, prime_p.dvd_mul] at h₀ h₁
   rw [mem_insert]
-  sorry
+  rcases h₁ with (h1a | h1b)
+  · left
+    apply prime_p.eq_of_dvd_of_prime
+    apply h₀.left
+    apply h1a
+  right
+  apply ih
+  intro n h
+  apply h₀.right
+  apply h
+  apply h1b
+
+
 example (s : Finset ℕ) (x : ℕ) : x ∈ s.filter Nat.Prime ↔ x ∈ s ∧ x.Prime :=
   mem_filter
 
@@ -119,21 +154,35 @@ theorem primes_infinite' : ∀ s : Finset Nat, ∃ p, Nat.Prime p ∧ p ∉ s :=
   intro s
   by_contra h
   push_neg at h
+  -- this is creating another set of primes within the finite set s.
   set s' := s.filter Nat.Prime with s'_def
   have mem_s' : ∀ {n : ℕ}, n ∈ s' ↔ n.Prime := by
     intro n
     simp [s'_def]
     apply h
-  have : 2 ≤ (∏ i in s', i) + 1 := by
-    sorry
-  rcases exists_prime_factor this with ⟨p, pp, pdvd⟩
-  have : p ∣ ∏ i in s', i := by
-    sorry
-  have : p ∣ 1 := by
-    convert Nat.dvd_sub' pdvd this
+  have h1: 2 ≤ (∏ i in s', i) + 1 := by
+    simp
+    apply Nat.succ_le_of_lt
+    apply Finset.prod_pos
+    intro i h
+    apply (mem_s'.mp h).pos
+  -- there exists a prime p such that p | the product from h1.
+  rcases exists_prime_factor h1 with ⟨p, pp, pdvd⟩
+  have h1 : p ∣ ∏ i in s', i := by
+    apply dvd_prod_of_mem
+    rw [mem_s']
+    apply pp
+  have h2 : p ∣ 1 := by
+    convert Nat.dvd_sub' pdvd h1
     simp
   show False
-  sorry
+
+  have h3 : p ≤ 1 := by
+    apply Nat.le_of_dvd
+    apply zero_lt_one
+    apply h2
+  linarith [pp.two_le]
+
 theorem bounded_of_ex_finset (Q : ℕ → Prop) :
     (∃ s : Finset ℕ, ∀ k, Q k → k ∈ s) → ∃ n, ∀ k, Q k → k < n := by
   rintro ⟨s, hs⟩
@@ -224,4 +273,3 @@ theorem primes_mod_4_eq_3_infinite : ∀ n, ∃ p > n, Nat.Prime p ∧ p % 4 = 3
   have : p = 3 := by
     sorry
   contradiction
-
