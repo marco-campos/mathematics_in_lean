@@ -7,8 +7,8 @@ This is my back-up for the exercises from the MIL textbook.
 - [x] Basics
 - [x] Logic
 - [x] Sets and Functions
-- [ ] Elementary Number Theory
-- [ ] Structures
+- [x] Elementary Number Theory
+- [x] Structures
 - [ ] Hierarchies
 - [ ] Groups and Rings
 - [ ] Topology
