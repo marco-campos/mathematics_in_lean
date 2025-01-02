@@ -1,6 +1,7 @@
 import Mathlib.Algebra.EuclideanDomain.Basic
 import Mathlib.RingTheory.PrincipalIdealDomain
 import MIL.Common
+import Paperproof
 
 @[ext]
 structure GaussInt where
@@ -180,7 +181,33 @@ end Int
 
 theorem sq_add_sq_eq_zero {α : Type*} [LinearOrderedRing α] (x y : α) :
     x ^ 2 + y ^ 2 = 0 ↔ x = 0 ∧ y = 0 := by
-  sorry
+    constructor
+    · intro h
+      -- Could've done this cleaner with a single intermediate lemma but it's ok...
+      have h1 : x ^ 2 = 0 := by
+        apply le_antisymm _
+        apply sq_nonneg
+        rw [← h]
+        simp
+        apply sq_nonneg
+      have h2 : x = 0 := by
+        apply pow_eq_zero h1
+      have h3 : y ^ 2 = 0 := by
+        apply le_antisymm _
+        apply sq_nonneg
+        rw [← h]
+        simp
+        apply sq_nonneg
+      have h4 : y = 0 := by
+        apply pow_eq_zero h3
+      constructor
+      · apply h2
+      · apply h4
+    · rintro ⟨h1, h2⟩
+      rw [h1, h2]
+      simp
+
+
 namespace GaussInt
 
 def norm (x : GaussInt) :=
@@ -188,13 +215,23 @@ def norm (x : GaussInt) :=
 
 @[simp]
 theorem norm_nonneg (x : GaussInt) : 0 ≤ norm x := by
-  sorry
+  rw [norm]
+  apply add_nonneg <;>
+  apply sq_nonneg
+
 theorem norm_eq_zero (x : GaussInt) : norm x = 0 ↔ x = 0 := by
-  sorry
+  rw [norm, sq_add_sq_eq_zero, GaussInt.ext_iff]
+  rfl
+
 theorem norm_pos (x : GaussInt) : 0 < norm x ↔ x ≠ 0 := by
-  sorry
+  rw [lt_iff_le_and_ne, ne_comm, Ne, norm_eq_zero]
+  simp
+
 theorem norm_mul (x y : GaussInt) : norm (x * y) = norm x * norm y := by
-  sorry
+  rw [norm, norm, norm]
+  simp
+  ring
+
 def conj (x : GaussInt) : GaussInt :=
   ⟨x.re, -x.im⟩
 
